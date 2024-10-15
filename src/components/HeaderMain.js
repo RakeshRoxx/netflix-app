@@ -1,43 +1,18 @@
+import { signOut } from "firebase/auth";
 import { LOGIN_NETFLIX_LOGO, USER_ICON } from "../utils/constants";
-import { useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
-import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth } from "../utils/firebase";
-import { useEffect } from "react";
-import { addUser, removeUser } from "../utils/reduxStore/userSlice";
+import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 
-const Header = () => {
+const HeaderMain = () => {
   const navigate = useNavigate();
-  const dispatcher = useDispatch();
   const user = useSelector((state) => state.user);
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        const { uid, email, displayName, photoURL } = user;
-        dispatcher(
-          addUser({
-            uid: uid,
-            email: email,
-            displayName: displayName,
-            photoURL: photoURL,
-          })
-        );
-        navigate("/browser");
-      } else {
-        dispatcher(removeUser());
-        navigate("/");
-      }
-    });
-    // onAuthStateChange is returns an function which remove the event listener
-    // this function will be called when our component is unmount
-    return () => unsubscribe();
-  }, []);
 
   const handleSignOut = () => {
     signOut(auth)
       .then(() => {
         // Sign-out successful.
+        navigate("/");
       })
       .catch((error) => {
         // An error happened.
@@ -65,4 +40,4 @@ const Header = () => {
   );
 };
 
-export default Header;
+export default HeaderMain;
