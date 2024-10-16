@@ -14,3 +14,5 @@ export const GET_OPTIONS = {
     Authorization: "Bearer " + process.env.REACT_APP_TMDB_API_TOKEN,
   },
 };
+
+export const POSTER_BASE_URL_W500 = "https://image.tmdb.org/t/p/w500";

@@ -13,12 +13,13 @@ const useGetMovieTrailer = ({ movieId, setVideoLink }) => {
     const videosDataJson = await data.json();
     const videosList = videosDataJson?.results;
     if (!videosList) return null;
+
     const traiilerList = videosList.filter((e) => {
       return e.type === "Trailer";
     });
 
     if (traiilerList && traiilerList.length === 0) return null;
-    console.log(traiilerList[0]?.key);
+    // console.log(traiilerList[0]?.key);
 
     setVideoLink(traiilerList[0]?.key);
   };
