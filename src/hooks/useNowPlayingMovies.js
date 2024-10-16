@@ -11,7 +11,7 @@ const useNowPlayingMovies = () => {
       GET_OPTIONS
     );
     const json = await list.json();
-    console.log(json?.results);
+    // console.log(json?.results);
     dispatch(addNowPlayingMovies(json?.results));
   };
 

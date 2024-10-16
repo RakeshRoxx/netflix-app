@@ -1,14 +1,13 @@
 import useNowPlayingMovies from "../hooks/useNowPlayingMovies";
 import Header from "./Header";
+import MainContainer from "./MainContainer";
 
 const Browser = () => {
-  const nowPlayingMovies = useNowPlayingMovies();
+  useNowPlayingMovies();
   return (
-    <div>
+    <div className="w-full h-42 overflow-y-scroll no-scrollbar">
       <Header />
-      <div className="text-red-400 font-bold">
-        Hello{process.env.TMDB_API_TOKEN}
-      </div>
+      <MainContainer />
     </div>
   );
 };
