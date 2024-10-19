@@ -1,14 +1,23 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { lang } from "../utils/languageDetails";
 import model from "../utils/googleGenAI";
-import { addMovieSuggestions } from "../utils/reduxStore/movieSuggestionSlice";
+import {
+  addMovieSuggestions,
+  addMovieSuggestionsDetails,
+} from "../utils/reduxStore/movieSuggestionSlice";
+import { GET_OPTIONS } from "../utils/constants";
+import MovieCart from "./MovieCart";
 
 const GptSearchBar = () => {
   const language = useSelector((store) => store?.state?.language);
   const suggestedMovies = useSelector((store) => store.suggestedMovies.movies);
   const searchText = useRef(null);
   const dispatch = useDispatch();
+  const [showLoading, setShowLoading] = useState(false);
+  const suggestedMoviesDetails = useSelector(
+    (store) => store.suggestedMovies.moviesDetails
+  );
 
   // const callGPT = async (text) => {
   //   const chatCompletion = await openai.chat.completions.create({
@@ -40,38 +49,87 @@ const GptSearchBar = () => {
 
   const handleSearch = async () => {
     // console.log(searchText.current.value);
+    setShowLoading(true);
     const movieList = await callGoogleGenAI(searchText.current.value);
     dispatch(addMovieSuggestions(movieList));
   };
 
-  console.log("kajdla", suggestedMovies);
+  const searchMovieDetails = async (suggestedMovies) => {
+    const promiseArray = suggestedMovies.map(async (movie) => {
+      const movieDetails = await fetch(
+        "https://api.themoviedb.org/3/search/movie?query=" +
+          movie +
+          "&include_adult=false&language=en-US&page=1",
+        GET_OPTIONS
+      );
+      const movieDetailsJson = await movieDetails.json();
+      return movieDetailsJson;
+    });
+
+    const response = await Promise.all(promiseArray);
+    const listArray = response.map((data) => {
+      return data?.results;
+    });
+
+    dispatch(addMovieSuggestionsDetails(listArray));
+    setShowLoading(false);
+  };
 
   useEffect(() => {
-    console.log("use", suggestedMovies);
+    if (suggestedMovies) {
+      searchMovieDetails(suggestedMovies);
+    }
   }, suggestedMovies);
 
   return (
-    <div className="pt-[10%] flex justify-center">
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-        }}
-        className="w-1/2 bg-black grid grid-cols-12 rounded-lg"
-      >
-        <input
-          ref={searchText}
-          type="text"
-          placeholder={lang[language]?.searchPlaceholder}
-          className="col-span-9 px-3 py-3 m-3 rounded-lg"
-        ></input>
-        <button
-          className="bg-red-800 col-span-3 px-2 py-2 m-3 rounded-lg"
-          onClick={handleSearch}
-        >
-          {lang[language]?.search}
-        </button>
-      </form>
-    </div>
+    <>
+      <div className="pt-[10%] flex justify-center flex-col">
+        <div className="flex justify-center">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+            }}
+            className="w-1/2 bg-black grid grid-cols-12 rounded-lg"
+          >
+            <input
+              ref={searchText}
+              type="text"
+              placeholder={lang[language]?.searchPlaceholder}
+              className="col-span-9 px-3 py-3 m-3 rounded-lg"
+            ></input>
+            <button
+              className="bg-red-800 col-span-3 px-2 py-2 m-3 rounded-lg"
+              onClick={handleSearch}
+            >
+              {lang[language]?.search}
+            </button>
+          </form>
+        </div>
+        {showLoading && (
+          <div className="flex justify-center bg-black">
+            <h1 className="font-bold text-white text-3xl">Loading</h1>
+          </div>
+        )}
+        <div className="flex overflow-x-scroll scrollbar-hide ml-3 mt-32">
+          {suggestedMoviesDetails &&
+            suggestedMoviesDetails.map((movieList) => {
+              // return <MovieList key={index} title={""} movies={movieList} />;
+              return movieList.map((movie) => {
+                return (
+                  <div key={movie.id}>
+                    <div className="flex">
+                      <MovieCart
+                        poster={movie?.poster_path}
+                        backdrop={movie?.backdrop_path}
+                      />
+                    </div>
+                  </div>
+                );
+              });
+            })}
+        </div>
+      </div>
+    </>
   );
 };
 
